@@ -87,9 +87,10 @@ body::after {
   height: 100%;
   display: flex;
   flex-direction: column;
+  gap: 16px;
   padding: 24px;
   padding-top: calc(24px + env(safe-area-inset-top));
-  padding-bottom: calc(24px + env(safe-area-inset-bottom) + 44px);
+  padding-bottom: calc(24px + env(safe-area-inset-bottom));
 }
 
 .content {
@@ -611,18 +612,16 @@ body::after {
 /* ═══ Bottom Nav ═══ */
 
 .bottom-nav {
-  position: fixed;
-  left: 50%;
-  transform: translateX(-50%);
-  bottom: 0;
-  width: min(520px, calc(100% - 32px));
+  flex-shrink: 0;
+  width: 100%;
+  max-width: 520px;
+  margin: 0 auto;
   height: 64px;
   display: grid;
   grid-auto-flow: column;
   grid-auto-columns: 1fr;
   align-items: center;
   padding: 10px;
-  padding-bottom: calc(10px + env(safe-area-inset-bottom));
   border-radius: 999px;
   background: rgba(255, 255, 255, 0.08);
   border: 1px solid rgba(255, 255, 255, 0.12);
@@ -711,16 +710,12 @@ body::after {
   .shell {
     padding: 18px;
     padding-top: calc(18px + env(safe-area-inset-top));
-    padding-bottom: calc(18px + env(safe-area-inset-bottom) + 44px);
+    padding-bottom: calc(18px + env(safe-area-inset-bottom));
   }
 
   .cal-grid {
     grid-template-columns: repeat(2, 1fr);
     gap: 10px;
-  }
-
-  .bottom-nav {
-    width: min(520px, calc(100% - 24px));
   }
 
   .bday-hero {
