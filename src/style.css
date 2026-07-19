@@ -89,7 +89,7 @@ body::after {
   flex-direction: column;
   padding: 24px;
   padding-top: calc(24px + env(safe-area-inset-top));
-  padding-bottom: calc(24px + env(safe-area-inset-bottom) + 52px);
+  padding-bottom: calc(24px + env(safe-area-inset-bottom) + 44px);
 }
 
 .content {
@@ -614,7 +614,7 @@ body::after {
   position: fixed;
   left: 50%;
   transform: translateX(-50%);
-  bottom: env(safe-area-inset-bottom);
+  bottom: 0;
   width: min(520px, calc(100% - 32px));
   height: 64px;
   display: grid;
@@ -622,6 +622,7 @@ body::after {
   grid-auto-columns: 1fr;
   align-items: center;
   padding: 10px;
+  padding-bottom: calc(10px + env(safe-area-inset-bottom));
   border-radius: 999px;
   background: rgba(255, 255, 255, 0.08);
   border: 1px solid rgba(255, 255, 255, 0.12);
@@ -710,7 +711,7 @@ body::after {
   .shell {
     padding: 18px;
     padding-top: calc(18px + env(safe-area-inset-top));
-    padding-bottom: calc(18px + env(safe-area-inset-bottom) + 52px);
+    padding-bottom: calc(18px + env(safe-area-inset-bottom) + 44px);
   }
 
   .cal-grid {
