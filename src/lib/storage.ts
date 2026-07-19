@@ -54,7 +54,11 @@ export async function loadFriends(): Promise<Friend[]> {
 
 export async function saveFriend(friend: Friend): Promise<Friend> {
   const { id, ...data } = friend
-  await updateDoc(doc(db, COLLECTION, id), data)
+  // Firestore no acepta undefined — solo enviamos los campos con valor
+  const cleanData = Object.fromEntries(
+    Object.entries(data).filter(([, v]) => v !== undefined),
+  )
+  await updateDoc(doc(db, COLLECTION, id), cleanData)
   return friend
 }
 
