@@ -32,7 +32,9 @@ function toFriend(id: string, data: Record<string, unknown>): Friend {
 
 export async function loadFriends(): Promise<Friend[]> {
   try {
-    const q = query(collection(db, COLLECTION), orderBy('month', 'asc'), orderBy('day', 'asc'))
+    // Ordenamos solo por mes en Firestore (usa índice automático)
+    // y completamos el orden por día en JS para no depender de índices compuestos
+    const q = query(collection(db, COLLECTION), orderBy('month', 'asc'))
     const snapshot = await getDocs(q)
     const friends = snapshot.docs.map((d) => toFriend(d.id, d.data() as Record<string, unknown>))
 
@@ -41,6 +43,8 @@ export async function loadFriends(): Promise<Friend[]> {
       return await seedFriends()
     }
 
+    // Orden completo: mes ascendente, luego día ascendente
+    friends.sort((a, b) => a.month - b.month || a.day - b.day)
     return friends
   } catch {
     // Si falla la conexión, intentamos con los defaults
