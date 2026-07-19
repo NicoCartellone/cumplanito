@@ -89,7 +89,7 @@ body::after {
   flex-direction: column;
   padding: 24px;
   padding-top: calc(24px + env(safe-area-inset-top));
-  padding-bottom: calc(24px + env(safe-area-inset-bottom) + 76px);
+  padding-bottom: calc(24px + env(safe-area-inset-bottom) + 52px);
 }
 
 .content {
@@ -614,7 +614,7 @@ body::after {
   position: fixed;
   left: 50%;
   transform: translateX(-50%);
-  bottom: max(8px, env(safe-area-inset-bottom));
+  bottom: env(safe-area-inset-bottom);
   width: min(520px, calc(100% - 32px));
   height: 64px;
   display: grid;
@@ -710,7 +710,7 @@ body::after {
   .shell {
     padding: 18px;
     padding-top: calc(18px + env(safe-area-inset-top));
-    padding-bottom: calc(18px + env(safe-area-inset-bottom) + 76px);
+    padding-bottom: calc(18px + env(safe-area-inset-bottom) + 52px);
   }
 
   .cal-grid {
