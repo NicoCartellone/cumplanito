@@ -116,6 +116,7 @@ body::after {
   -webkit-overflow-scrolling: touch;
   scrollbar-width: none; /* Firefox */
   -ms-overflow-style: none; /* IE/Edge */
+  overscroll-behavior: contain; /* evita chaining: el bounce interno no se engancha con el body fijo */
 }
 
 .page--scrollable::-webkit-scrollbar {
@@ -653,8 +654,9 @@ body::after {
 .bottom-nav {
   position: fixed;
   bottom: 0;
-  left: 50%;
-  transform: translateX(-50%);
+  left: 0;
+  right: 0;
+  margin: 0 auto;
   width: min(520px, calc(100% - 32px));
   height: 64px;
   display: grid;
@@ -663,10 +665,14 @@ body::after {
   align-items: center;
   padding: 10px;
   border-radius: 999px;
-  background: rgba(255, 255, 255, 0.08);
+  /* Fondo casi opaco: sin backdrop-filter (causa scroll 'stuck' en móviles al
+     tocar la barra con blur sobre un scroll container interno) */
+  background: rgba(45, 27, 78, 0.97);
   border: 1px solid rgba(255, 255, 255, 0.12);
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.45);
-  backdrop-filter: blur(12px);
+  /* Los gestos que arrancan en la barra (fuera de un botón) atraviesan al
+     contenido: el scroll principal no se bloquea ni se 'traga' el swipe */
+  pointer-events: none;
 }
 
 .nav-btn {
@@ -686,6 +692,9 @@ body::after {
   font-size: 10px;
   gap: 2px;
   font-family: inherit;
+  /* Restaura la interactividad de los botones y elimina el delay de tap (iOS) */
+  pointer-events: auto;
+  touch-action: manipulation;
 }
 
 .nav-btn:hover {
