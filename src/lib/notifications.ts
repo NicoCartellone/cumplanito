@@ -174,9 +174,11 @@ export function useNotifications(): {
       const vapidKey = import.meta.env.VITE_VAPID_PUBLIC_KEY
       const storedVapid = localStorage.getItem(LS_VAPID)
 
-      // 3. Reusar sub vigente; rotar si cambió la VAPID pública; crear si falta
+      // 3. Reusar sub vigente; rotar SOLO si hubo un enable previo con OTRA VAPID.
+      // Si no hay storedVapid (ej: se borró el sitio, reinstaló o incógnito) se
+      // REUSA la sub: mismo endpoint → mismo doc → cero duplicados en la colección.
       let sub = await sw.pushManager.getSubscription()
-      if (sub && storedVapid !== vapidKey) {
+      if (sub && storedVapid !== null && storedVapid !== vapidKey) {
         // VAPID rotó: la sub vieja es inútil → unsubscribe + subscribe nuevo
         try {
           await sub.unsubscribe()
