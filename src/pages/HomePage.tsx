@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import type { Friend } from '../types'
 import { loadFriends } from '../lib/storage'
 import {
@@ -7,15 +7,67 @@ import {
   getUpcomingBirthdays,
   formatBirthday,
 } from '../lib/birthdays'
-import { requestNotificationPermission } from '../lib/notifications'
+import { useNotifications } from '../lib/notifications'
 
 const WHATSAPP_MSG = (name: string) =>
   encodeURIComponent(`¡Feliz cumpleaños, ${name}! 🎂🎉 Que tengas un excelente día 🥳`)
+
+/**
+ * URL de configuración de notificaciones del browser, si hay forma directa de abrirla.
+ * Chrome/Edge bloquean la navegación web a chrome://settings → en esos browsers
+ * se muestran instrucciones textuales en vez de un link muerto.
+ */
+function browserSettingsUrl(): string | undefined {
+  const ua = navigator.userAgent
+  if (/Firefox/i.test(ua)) {
+    return 'about:preferences#privacy'
+  }
+  return undefined // Chrome/Edge/Safari: instrucciones textuales
+}
 
 export default function HomePage() {
   const [friends, setFriends] = useState<Friend[]>([])
   const [loading, setLoading] = useState(true)
   const [, tick] = useState(0)
+
+  const { state: notifState, errorMessage: notifError, enable, disable } = useNotifications()
+
+  // Snackbar temporal de feedback — desaparece solo, no es ruido permanente
+  const [toast, setToast] = useState<string | null>(null)
+  const prevNotifState = useRef(notifState)
+  const didMountSync = useRef(false)
+  const toastTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
+
+  function showToast(message: string) {
+    setToast(message)
+    if (toastTimer.current) clearTimeout(toastTimer.current)
+    toastTimer.current = setTimeout(() => setToast(null), 4500)
+  }
+
+  // Toast SOLO en transiciones por acción del usuario (activar/desactivar).
+  // La restauración silenciosa del hook en el mount (recarga con estado guardado)
+  // NO muestra nada — evita ruido en cada visita.
+  useEffect(() => {
+    const prev = prevNotifState.current
+    prevNotifState.current = notifState
+    if (prev === notifState) return
+    if (!didMountSync.current) {
+      didMountSync.current = true
+      return
+    }
+    if (notifState === 'enabled') {
+      showToast('✅ Notificaciones activadas — te avisamos cuando alguien cumple')
+    } else if (notifState === 'idle' && prev === 'enabled') {
+      showToast('Notificaciones desactivadas')
+    }
+  }, [notifState])
+
+  // Limpieza del timer al desmontar
+  useEffect(() => {
+    return () => {
+      if (toastTimer.current) clearTimeout(toastTimer.current)
+    }
+  }, [])
 
   useEffect(() => {
     loadFriends().then((f) => {
@@ -33,16 +85,7 @@ export default function HomePage() {
   const today = friends.filter(isBirthdayToday)
   const upcoming = getUpcomingBirthdays(friends)
   const next = upcoming[0]
-
-  const notifGranted =
-    typeof Notification !== 'undefined' && Notification.permission === 'granted'
-  const notifDenied =
-    typeof Notification !== 'undefined' && Notification.permission === 'denied'
-
-  const handleRequestNotif = async () => {
-    const ok = await requestNotificationPermission()
-    if (ok) tick((n) => n + 1)
-  }
+  const settingsUrl = browserSettingsUrl()
 
   const whatsappUrl = (friend: Friend) =>
     friend.whatsapp
@@ -98,23 +141,104 @@ export default function HomePage() {
       )}
 
       {/* ── Activar notificaciones ── */}
-      {!notifGranted && !notifDenied && (
-        <button className="btn btn-ghost" onClick={handleRequestNotif} type="button">
+      {notifState === 'idle' && (
+        <button className="btn btn-ghost" onClick={enable} type="button">
           🔔 Activar recordatorios
         </button>
       )}
 
-      {notifGranted && (
+      {notifState === 'registering' && (
+        <button className="btn btn-ghost" type="button" disabled>
+          ⌛ Registrando…
+        </button>
+      )}
+
+      {notifState === 'enabled' && (
+        <div className="notif-chip">
+          <span>🔔 Notificaciones activas</span>
+          <button
+            className="btn btn-ghost"
+            onClick={disable}
+            type="button"
+            style={{ fontSize: 13, padding: '6px 12px' }}
+          >
+            Desactivar
+          </button>
+        </div>
+      )}
+
+      {notifState === 'denied' && (
         <div
           className="alert"
           style={{
-            background: 'rgba(34, 197, 94, 0.10)',
-            border: '1px solid rgba(34, 197, 94, 0.25)',
-            color: '#22c55e',
+            background: 'rgba(239, 68, 68, 0.10)',
+            border: '1px solid rgba(239, 68, 68, 0.25)',
+            color: '#ef4444',
           }}
         >
-          <span className="alert-emoji">✅</span>
-          <span>Notificaciones activadas — te avisamos cuando alguien cumple años</span>
+          <span className="alert-emoji">🔕</span>
+          <span>
+            Notificaciones bloqueadas — activalas desde la configuración del navegador
+            {settingsUrl ? (
+              <>
+                {' '}
+                ·{' '}
+                <a
+                  href={settingsUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style={{ color: 'inherit', textDecoration: 'underline' }}
+                >
+                  Abrir configuración
+                </a>
+              </>
+            ) : (
+              <>
+                {' '}
+                (en Chrome/Edge: menú ⋮ → Configuración → Privacidad y seguridad → Configuración de
+                sitios → Notificaciones)
+              </>
+            )}
+          </span>
+        </div>
+      )}
+
+      {notifState === 'unsupported' && (
+        <div
+          className="alert"
+          style={{
+            background: 'rgba(245, 158, 11, 0.10)',
+            border: '1px solid rgba(245, 158, 11, 0.25)',
+            color: '#f59e0b',
+          }}
+        >
+          <span className="alert-emoji">📵</span>
+          <span>
+            Tu navegador no soporta notificaciones push. Necesitás Safari 16.4+ (en iPhone, dentro
+            de la app instalada) o un navegador moderno en Android/desktop.
+          </span>
+        </div>
+      )}
+
+      {notifState === 'error' && (
+        <div
+          className="alert"
+          style={{
+            background: 'rgba(239, 68, 68, 0.10)',
+            border: '1px solid rgba(239, 68, 68, 0.25)',
+            color: '#ef4444',
+          }}
+        >
+          <span className="alert-emoji">⚠️</span>
+          <span>{notifError ?? 'No se pudieron activar las notificaciones.'}</span>
+          <button
+            className="btn btn-ghost"
+            onClick={enable}
+            type="button"
+            style={{ marginLeft: 'auto', flexShrink: 0 }}
+          >
+            Reintentar
+          </button>
         </div>
       )}
 
@@ -160,6 +284,13 @@ export default function HomePage() {
           })}
         </div>
       </div>
+
+      {/* ── Snackbar temporal (feedback no invasivo) ── */}
+      {toast && (
+        <div className="snackbar" role="status" aria-live="polite">
+          {toast}
+        </div>
+      )}
     </div>
   )
 }

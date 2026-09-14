@@ -6,8 +6,16 @@ export default defineConfig({
   plugins: [
     react(),
     VitePWA({
+      strategies: 'injectManifest',
+      srcDir: 'src',
+      filename: 'sw.ts',
+      injectRegister: false, // main.tsx registra via virtual:pwa-register
       registerType: 'prompt',
       includeAssets: ['favicon.svg', 'icon.svg'],
+      injectManifest: {
+        globPatterns: ['**/*.{js,css,html,svg,png,ico,webmanifest}'],
+        maximumFileSizeToCacheInBytes: 3 * 1024 * 1024,
+      },
       manifest: {
         name: 'Cumpleañito',
         short_name: 'Cumpleaños',

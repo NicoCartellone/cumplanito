@@ -3,19 +3,28 @@ rules_version = '2';
 // ⚠️ Reglas temporales para MVP — recomendación: agregar autenticación luego
 service cloud.firestore {
   match /databases/{database}/documents {
-    // Amigos: cualquiera puede leer/escribir
+    // Amigos: lectura pública, escritura con validación mínima de shape
     match /friends/{friendId} {
+      function validFriend() {
+        return request.resource.data.name is string
+          && request.resource.data.name.size() > 0
+          && request.resource.data.name.size() <= 60
+          && request.resource.data.month is int
+          && request.resource.data.month >= 1 && request.resource.data.month <= 12
+          && request.resource.data.day is int
+          && request.resource.data.day >= 1 && request.resource.data.day <= 31;
+      }
       allow read: if true;
-      allow write: if true;
+      allow create: if validFriend();
+      allow update: if validFriend();
+      allow delete: if true;
     }
 
-    // Tokens FCM: cualquiera puede leer (para la cloud function)
-    // y crear, pero solo el propio token puede ser borrado
-    match /fcmTokens/{token} {
-      allow read: if true;
-      allow create: if true;
-      allow delete: if request.auth != null;
-      allow write: if request.auth != null;
+    // Suscripciones Web Push: la app solo escribe (create/update del upsert).
+    // El cron usa Admin SDK, que bypasea estas reglas.
+    match /pushSubscriptions/{subId} {
+      allow create, update: if true;
+      allow read, delete: if false;
     }
   }
 }

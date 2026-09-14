@@ -2,6 +2,17 @@
   command = "npm run build"
   publish = "dist"
 
+# El SW se sirve sin cache para que los updates se propaguen al instante
+[[headers]]
+  for = "/sw.js"
+  [headers.values]
+    Cache-Control = "no-cache, no-store, must-revalidate"
+
+[[headers]]
+  for = "/sw.js.map"
+  [headers.values]
+    Cache-Control = "no-cache, no-store, must-revalidate"
+
 # SPA redirect: todas las rutas al index.html
 [[redirects]]
   from = "/*"

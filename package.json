@@ -4,8 +4,8 @@
   "version": "0.1.0",
   "type": "module",
   "scripts": {
-    "dev": "node scripts/generate-sw.js && vite",
-    "build": "node scripts/generate-sw.js && tsc && vite build",
+    "dev": "vite",
+    "build": "tsc && vite build",
     "preview": "vite preview"
   },
   "devDependencies": {
@@ -14,8 +14,7 @@
     "@vitejs/plugin-react-swc": "^4.3.0",
     "typescript": "~6.0.2",
     "vite": "^7.3.2",
-    "vite-plugin-pwa": "^1.2.0",
-    "web-push": "^3.6.7"
+    "vite-plugin-pwa": "^1.2.0"
   },
   "dependencies": {
     "firebase": "^12.16.0",
