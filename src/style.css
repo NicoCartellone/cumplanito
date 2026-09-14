@@ -46,7 +46,8 @@ body {
   height: 100%;
   overflow: hidden;
   background: transparent;
-  overscroll-behavior: none;
+  /* NOTA: sin overscroll-behavior:none a propósito — habilita el pull-to-refresh
+     nativo del navegador (gesto de recargar arrastrando hacia abajo) */
   position: fixed;
   inset: 0;
   width: 100%;
@@ -116,7 +117,8 @@ body::after {
   -webkit-overflow-scrolling: touch;
   scrollbar-width: none; /* Firefox */
   -ms-overflow-style: none; /* IE/Edge */
-  overscroll-behavior: contain; /* evita chaining: el bounce interno no se engancha con el body fijo */
+  /* NOTA: sin overscroll-behavior:contain — permite que el pull-to-refresh
+     nativo se dispare cuando el contenido está arriba de todo */
 }
 
 .page--scrollable::-webkit-scrollbar {
