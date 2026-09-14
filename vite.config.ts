@@ -10,7 +10,7 @@ export default defineConfig({
       srcDir: 'src',
       filename: 'sw.ts',
       injectRegister: false, // main.tsx registra via virtual:pwa-register
-      registerType: 'prompt',
+      registerType: 'autoUpdate', // el sw.ts hace skipWaiting+claim: los updates llegan solos
       includeAssets: ['favicon.svg', 'icon.svg'],
       injectManifest: {
         globPatterns: ['**/*.{js,css,html,svg,png,ico,webmanifest}'],

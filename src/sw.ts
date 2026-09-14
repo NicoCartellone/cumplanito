@@ -11,9 +11,20 @@ cleanupOutdatedCaches()
 // Shell offline: rutas SPA → index.html (injectManifest NO genera navigateFallback solo)
 registerRoute(new NavigationRoute(createHandlerBoundToURL('index.html')))
 
-// registerType 'prompt': el SW espera la orden de skipWaiting
-self.addEventListener('message', (event) => {
-  if (event.data?.type === 'SKIP_WAITING') self.skipWaiting()
+// AUTO-UPDATE: el SW nuevo se activa apenas se instala y toma control del cliente.
+// El flujo anterior ('prompt' esperando un mensaje SKIP_WAITING que nadie enviaba)
+// dejaba el SW nuevo en 'waiting' para siempre → el celular seguía sirviendo el
+// bundle de la primera instalación y nunca veía los deploys nuevos.
+self.addEventListener('install', () => self.skipWaiting())
+
+self.addEventListener('activate', (event) => {
+  event.waitUntil(
+    (async () => {
+      if (self.clients && 'claim' in self.clients) {
+        await self.clients.claim()
+      }
+    })(),
+  )
 })
 
 // Push (Web Push puro — el payload JSON lo arma functions/index.js)
