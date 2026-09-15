@@ -1,3 +1,4 @@
+import { useRef } from 'react'
 import { NavLink } from 'react-router-dom'
 
 const links = [
@@ -38,14 +39,50 @@ const links = [
 ]
 
 export default function BottomNav() {
+  // La barra es fixed (fuera del scroll container): un gesto que arranca sobre
+  // un botón jamás se propaga al contenido. Por eso los botones usan
+  // touch-action: none y DESLIZAMOS el .page--scrollable manualmente.
+  const startY = useRef<number | null>(null)
+  const moved = useRef(false)
+
+  const onTouchStart = (e: React.TouchEvent) => {
+    startY.current = e.touches[0]?.clientY ?? null
+    moved.current = false
+  }
+
+  const onTouchMove = (e: React.TouchEvent) => {
+    if (startY.current === null) return
+    const y = e.touches[0]?.clientY
+    if (y === undefined) return
+    const delta = startY.current - y // > 0 = swipe hacia arriba
+    if (Math.abs(delta) > 3) moved.current = true
+    const scrollEl = document.querySelector<HTMLElement>('.page--scrollable')
+    if (scrollEl) scrollEl.scrollTop += delta
+    startY.current = y
+  }
+
+  const endTouch = () => {
+    startY.current = null
+  }
+
   return (
-    <nav className="bottom-nav">
+    <nav
+      className="bottom-nav"
+      onTouchStart={onTouchStart}
+      onTouchMove={onTouchMove}
+      onTouchEnd={endTouch}
+      onTouchCancel={endTouch}
+    >
       {links.map((link) => (
         <NavLink
           key={link.to}
           to={link.to}
           end={link.to === '/'}
           className={({ isActive }) => `nav-btn${isActive ? ' is-active' : ''}`}
+          onClick={(e) => {
+            // Si el dedo arrastró (scroll manual), el tap no debe navegar
+            if (moved.current) e.preventDefault()
+          }}
         >
           {link.icon}
           <span className="nav-label">{link.label}</span>

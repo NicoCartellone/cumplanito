@@ -661,19 +661,16 @@ body::after {
   margin: 0 auto;
   width: min(520px, calc(100% - 32px));
   height: 64px;
-  display: grid;
-  grid-auto-flow: column;
-  grid-auto-columns: 1fr;
+  display: flex;
   align-items: center;
-  padding: 10px;
-  border-radius: 999px;
-  /* Fondo casi opaco: sin backdrop-filter (causa scroll 'stuck' en móviles al
-     tocar la barra con blur sobre un scroll container interno) */
-  background: rgba(45, 27, 78, 0.97);
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.45);
-  /* Los gestos que arrancan en la barra (fuera de un botón) atraviesan al
-     contenido: el scroll principal no se bloquea ni se 'traga' el swipe */
+  justify-content: space-evenly;
+  padding: 8px 12px;
+  border-radius: 26px;
+  background: rgba(38, 24, 60, 0.96);
+  border: 1px solid rgba(255, 255, 255, 0.10);
+  box-shadow: 0 16px 50px rgba(0, 0, 0, 0.45);
+  /* El pill en sí no captura toques: el swipe sobre la barra (entre botones)
+     atraviesa al contenido y scrollea natural. Solo los botones reciben eventos. */
   pointer-events: none;
 }
 
@@ -682,9 +679,8 @@ body::after {
   border: 0;
   background: transparent;
   color: rgba(255, 255, 255, 0.65);
-  height: 44px;
-  width: 44px;
-  margin: 0 auto;
+  width: 68px;
+  height: 48px;
   border-radius: 14px;
   display: flex;
   flex-direction: column;
@@ -692,11 +688,14 @@ body::after {
   justify-content: center;
   text-decoration: none;
   font-size: 10px;
-  gap: 2px;
+  gap: 3px;
   font-family: inherit;
-  /* Restaura la interactividad de los botones y elimina el delay de tap (iOS) */
+  /* touch-action: none permite recibir touchmove y hacer scroll manual del
+     contenido (el botón es fixed, fuera del scroll container — el navegador
+     nunca propagaría el gesto). El tap sigue navegando (BottomNav cancela el
+     click si hubo arrastre). */
   pointer-events: auto;
-  touch-action: manipulation;
+  touch-action: none;
 }
 
 .nav-btn:hover {
@@ -746,13 +745,19 @@ body::after {
 
 .update-bar {
   position: fixed;
-  left: 50%;
-  transform: translateX(-50%);
-  bottom: calc(14px + env(safe-area-inset-bottom) + 64px + 10px);
-  width: min(520px, calc(100% - 32px));
-  display: grid;
-  justify-items: center;
+  left: 0;
+  right: 0;
+  bottom: calc(84px + env(safe-area-inset-bottom));
   z-index: 20;
+  display: flex;
+  justify-content: center;
+  padding: 0 16px;
+  /* El contenedor no captura toques: solo el botón (la capsula visible) */
+  pointer-events: none;
+}
+
+.update-bar .btn {
+  pointer-events: auto;
 }
 
 /* ═══ Responsive ═══ */
